@@ -1,22 +1,17 @@
 {
-  "num_trials": 5,
+  "num_trials": 20,
   "hyperparameters": [
     {
-      "name": "alpha_p",
-      "short_desc": "For the “tsb” version, the alpha smoothing parameter to apply on probability.",
-      "type": "float",
-      "search_type": "uniform",
-      "range_low": 1,
-      "range_high": 2
+      "name": "seasonality_mode",
+      "short_desc": "seasonality_mode. One of two types: ['additive', 'multiplicative']",
+      "type": "categorical",
+      "categorical_vals": ["additive", "multiplicative"]
     },
     {
-      "name": "alpha_d",
-      "short_desc": "For the “tsb” version, the alpha smoothing parameter to apply on demand.",
-      "type": "float",
-      "search_type": "uniform",
-      "range_low": 1,
-      "range_high": 2
+      "name": "growth",
+      "short_desc": "String 'linear', 'logistic' or 'flat' to specify a linear, logistic or flat trend.",
+      "type": "categorical",
+      "categorical_vals": ["flat", "linear", "logistic"]
     }
-
   ]
 }
