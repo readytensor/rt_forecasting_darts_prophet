@@ -93,6 +93,7 @@ class SchemaModel(BaseModel):
     inputDataFormat: str = None
     encoding: str = None
     frequency: Frequency
+    forecastLength: int
     idField: ID
     timeField: TimeField
     forecastTarget: ForecastTarget

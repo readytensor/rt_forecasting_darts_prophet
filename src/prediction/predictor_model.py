@@ -24,9 +24,12 @@ class Forecaster:
     """
 
     model_name = "Prophet Forecaster"
+    made_up_frequency = "S"  # by seconds
+    made_up_start_dt = "2000-01-01 00:00:00"
 
     def __init__(
         self,
+        data_schema: ForecastingSchema,
         add_seasonalities: Union[dict, List[dict], None] = None,
         country_holidays: Optional[str] = None,
         suppress_stdout_stderror: Optional[bool] = True,
@@ -42,6 +45,7 @@ class Forecaster:
         """Construct a new Prophet Forecaster
 
         Args:
+            data_schema (ForecastingSchema): Schema of the data used for training.
             add_seasonalities (Union[dict, List[dict], None]):
             Optionally, a dict or list of dicts with custom seasonality/ies to add to the model. Each dict takes the following mandatory and optional data:
             dict({
@@ -111,7 +115,56 @@ class Forecaster:
         self.prophet_kwargs = prophet_kwargs
         self._is_trained = False
         self.models = {}
-        self.data_schema = None
+        self.time_to_int_map = {}
+        self.data_schema = data_schema
+
+    def prepare_data(self, data: pd.DataFrame, is_train=True) -> pd.DataFrame:
+        """
+        Function to prepare the dataframe to use with Prophet.
+
+        If the time column is of type int, we will update it to be datetime
+        by creating artificial dates starting at '1/1/2023 00:00:00'
+        that increment by 1 second for each row.
+
+        Additionally, there may be 0, 1 or more future covariates as were originally
+        passed. These are returned as-is.
+        """
+        # sort data
+        data = data.sort_values(by=[self.data_schema.id_col, self.data_schema.time_col])
+
+        if self.data_schema.time_col_dtype == "INT":
+            # Find the number of rows for each location (assuming all locations have
+            # the same number of rows)
+            series_val_counts = data[self.data_schema.id_col].value_counts()
+            series_len = series_val_counts.iloc[0]
+            num_series = series_val_counts.shape[0]
+
+            if is_train:
+                # since prophet requires a datetime column, we will make up a timeline
+                start_date = pd.Timestamp(self.made_up_start_dt)
+                datetimes = pd.date_range(
+                    start=start_date, periods=series_len, freq=self.made_up_frequency
+                )
+                self.last_timestamp = datetimes[-1]
+                self.timedelta = datetimes[-1] - datetimes[-2]
+            else:
+                start_date = self.last_timestamp + self.timedelta
+                datetimes = pd.date_range(
+                    start=start_date, periods=series_len, freq=self.made_up_frequency
+                )
+            int_vals = sorted(data[self.data_schema.time_col].unique().tolist())
+            self.time_to_int_map = dict(zip(datetimes, int_vals))
+            # Repeat the datetime range for each location
+            data[self.data_schema.time_col] = list(datetimes) * num_series
+        else:
+            data[self.data_schema.time_col] = pd.to_datetime(
+                data[self.data_schema.time_col]
+            )
+            data[self.data_schema.time_col] = data[
+                self.data_schema.time_col
+            ].dt.tz_localize(None)
+
+        return data
 
     def fit(self, history: pd.DataFrame, data_schema: ForecastingSchema) -> None:
         """Fit the Forecaster to the training data.
@@ -123,6 +176,7 @@ class Forecaster:
             data_schema (ForecastingSchema): The schema of the training data.
         """
         np.random.seed(0)
+        history = self.prepare_data(history.copy())
         groups_by_ids = history.groupby(data_schema.id_col)
         all_ids = list(groups_by_ids.groups.keys())
         all_series = [
@@ -177,7 +231,9 @@ class Forecaster:
         if not self._is_trained:
             raise NotFittedError("Model is not fitted yet.")
 
-        groups_by_ids = test_data.groupby(self.data_schema.id_col)
+        future_df = self.prepare_data(test_data.copy(), is_train=False)
+
+        groups_by_ids = future_df.groupby(self.data_schema.id_col)
         all_series = [
             groups_by_ids.get_group(id_).drop(columns=self.data_schema.id_col)
             for id_ in self.all_ids
@@ -195,6 +251,12 @@ class Forecaster:
         all_forecasts.rename(
             columns={self.data_schema.target: prediction_col_name}, inplace=True
         )
+
+        if self.data_schema.time_col_dtype == "INT":
+            all_forecasts[self.data_schema.time_col] = all_forecasts[
+                self.data_schema.time_col
+            ].map(self.time_to_int_map)
+
         return all_forecasts
 
     def _predict_on_series(self, key_and_future_df):
@@ -267,6 +329,7 @@ def train_predictor_model(
         'Forecaster': The Forecaster model
     """
     model = Forecaster(
+        data_schema=data_schema,
         **hyperparameters,
     )
     model.fit(history=history, data_schema=data_schema)
