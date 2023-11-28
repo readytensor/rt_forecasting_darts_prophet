@@ -1,0 +1,22 @@
+{
+  "num_trials": 5,
+  "hyperparameters": [
+    {
+      "name": "alpha_p",
+      "short_desc": "For the “tsb” version, the alpha smoothing parameter to apply on probability.",
+      "type": "float",
+      "search_type": "uniform",
+      "range_low": 1,
+      "range_high": 2
+    },
+    {
+      "name": "alpha_d",
+      "short_desc": "For the “tsb” version, the alpha smoothing parameter to apply on demand.",
+      "type": "float",
+      "search_type": "uniform",
+      "range_low": 1,
+      "range_high": 2
+    }
+
+  ]
+}

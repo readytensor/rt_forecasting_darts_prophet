@@ -1,0 +1,11 @@
+{
+  "country_holidays": null,
+  "add_seasonalities": null,
+  "suppress_stdout_stderror": true,
+  "cap": null,
+  "floor": null,
+  "seasonality_mode": "multiplicative",
+  "growth": "linear"
+  
+
+}
