@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Tuple, Union
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from darts.utils.utils import ModelMode, SeasonalityMode, TrendMode
 
 
 def read_json_as_dict(input_path: str) -> Dict:
@@ -196,26 +195,3 @@ def make_serializable(obj: Any) -> Union[int, float, List[Union[int, float]], An
         return obj.tolist()
     else:
         return json.JSONEncoder.default(None, obj)
-
-
-def map_hyperparameters(hyperparameters_dict: dict):
-    """Maps a string in the default hyperparameter dict to the parameter expected by the forecaster"""
-    map = {
-        "season_mode": {
-            "additive": SeasonalityMode.ADDITIVE,
-            "multiplicative": SeasonalityMode.MULTIPLICATIVE,
-            "None": SeasonalityMode.NONE,
-        },
-        "trend_mode": {
-            "linear": TrendMode.LINEAR,
-            "exponential": TrendMode.EXPONENTIAL,
-        },
-        "model_mode": {
-            "additive": ModelMode.ADDITIVE,
-            "multiplicative": ModelMode.MULTIPLICATIVE,
-        },
-    }
-    for k, v in hyperparameters_dict.items():
-        if k in map and v in map[k]:
-            hyperparameters_dict[k] = map[k][v]
-    return hyperparameters_dict

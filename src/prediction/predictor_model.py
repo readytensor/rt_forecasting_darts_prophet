@@ -84,8 +84,6 @@ class Forecaster:
             - a function taking a DatetimeIndex or RangeIndex and returning a corresponding a Sequence of numbers,
             where each number indicates the carrying capacity at this index.
 
-
-
             add_encoders (Optional[dict]): A large number of future covariates can be automatically generated with add_encoders.
                 This can be done by adding multiple pre-defined index encoders and/or custom user-made functions that will be used as index encoders.
                 Additionally, a transformer such as Darts' Scaler can be added to transform the generated covariates.
