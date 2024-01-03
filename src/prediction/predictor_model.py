@@ -108,7 +108,7 @@ class Forecaster:
         self.country_holidays = country_holidays
         self.suppress_stdout_stderror = suppress_stdout_stderror
         self.add_encoders = add_encoders
-        self.cap = (cap,)
+        self.cap = cap
         self.floor = floor
         self.prophet_kwargs = prophet_kwargs
         self._is_trained = False
