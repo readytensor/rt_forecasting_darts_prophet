@@ -264,7 +264,7 @@ class Forecaster:
         key, future_df = key_and_future_df
 
         future_covariates = None
-        if self.data_schema.future_covariates:
+        if self.data_schema.future_covariates + self.data_schema.static_covariates:
             future_covariates = TimeSeries.from_dataframe(
                 future_df,
                 self.data_schema.time_col,
