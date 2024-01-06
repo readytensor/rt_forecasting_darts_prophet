@@ -234,9 +234,9 @@ class Forecaster:
 
         series = TimeSeries.from_dataframe(
             history,
-            # data_schema.time_col,
-            value_cols=data_schema.target,
-            # fill_missing_dates=True,
+            data_schema.time_col,
+            data_schema.target,
+            fill_missing_dates=True,
         )
 
         future_covariates = None
