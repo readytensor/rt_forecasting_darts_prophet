@@ -236,7 +236,7 @@ class Forecaster:
             history,
             data_schema.time_col,
             data_schema.target,
-            freq=self.map_frequency(data_schema.frequency),
+            fill_missing_dates=True,
         )
 
         future_covariates = None
